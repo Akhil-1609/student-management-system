@@ -14,6 +14,8 @@ public interface StudentRepository extends JpaRepository<Student,Integer> {
 
     List<Student> findByName(String name);
 
+    // NEW : Returns true if email is alredy in database
+    boolean existsByEmail(String email);
 
 
 }

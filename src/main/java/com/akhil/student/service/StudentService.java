@@ -16,6 +16,14 @@ public class StudentService {
 
     // Save a Student
     public Student saveStudent(Student student) {
+
+        //1.Check if email exist
+        if(repository.existsByEmail(student.getEmail())){
+
+            throw new RuntimeException("Email is alredy taken");
+        }
+
+        //2. Only save if its new
         return repository.save(student);
     }
 

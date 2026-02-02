@@ -5,8 +5,9 @@
     <title>Student Management System</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
+        .container { max-width: 700px; margin: auto; }
         input { padding: 10px; margin: 5px 0; width: 95%; }
+
         /* Green Add Button */
         .btn-add { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; width: 100%; }
         .btn-add:hover { background-color: #218838; }
@@ -27,6 +28,8 @@
     <h3>Add New Student</h3>
     <input type="text" id="studentName" placeholder="Enter Name">
     <input type="text" id="studentBranch" placeholder="Enter Branch">
+    <input type="email" id="studentEmail" placeholder="Enter Email">
+
     <button class="btn-add" onclick="addStudent()">Add Student</button>
 
     <hr>
@@ -38,18 +41,21 @@
 <script>
     const API_URL = "http://localhost:8080/students";
 
-    // 1. Function to Load Students (Now with Delete Buttons!)
     function loadStudents() {
         fetch(API_URL + "/all")
             .then(response => response.json())
             .then(data => {
                 const list = document.getElementById("studentList");
-                list.innerHTML = ""; // Clear current list
+                list.innerHTML = "";
                 data.forEach(student => {
                     const li = document.createElement("li");
-                    // Show Info + Red Delete Button
                     li.innerHTML = `
-                        <span>ID: ${student.id} | <b>${student.name}</b> (${student.branch})</span>
+                        <span>
+                           ID: ${student.id} |
+                           <b>${student.name}</b>
+                           (${student.branch}) -
+                           <span style="color:blue">${student.email || 'No Email'}</span>
+                        </span>
                         <button class="btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
                     `;
                     list.appendChild(li);
@@ -57,45 +63,47 @@
             });
     }
 
-    // 2. Function to Add Student
     function addStudent() {
         const name = document.getElementById("studentName").value;
         const branch = document.getElementById("studentBranch").value;
+        const email = document.getElementById("studentEmail").value;
 
-        if (!name || !branch) {
-            alert("Please enter both Name and Branch");
+        if (!name || !branch || !email) {
+            alert("Please enter Name, Branch, and Email");
             return;
         }
 
         fetch(API_URL + "/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: name, branch: branch })
+            body: JSON.stringify({ name: name, branch: branch, email: email })
         })
-        .then(response => response.json())
-        .then(data => {
-            loadStudents(); // Reload list
-            document.getElementById("studentName").value = "";
-            document.getElementById("studentBranch").value = "";
+        .then(response => {
+            if (response.ok) {
+                return response.json().then(data => {
+                    alert("Student Added!");
+                    loadStudents();
+                    document.getElementById("studentName").value = "";
+                    document.getElementById("studentBranch").value = "";
+                    document.getElementById("studentEmail").value = "";
+                });
+            } else {
+                alert("Error: Email is already taken!");
+            }
         });
     }
 
-    // 3. Function to Delete Student
     function deleteStudent(id) {
         if(confirm("Are you sure you want to delete ID " + id + "?")) {
-            fetch(API_URL + "/delete/" + id, {
-                method: "DELETE"
-            })
+            fetch(API_URL + "/delete/" + id, { method: "DELETE" })
             .then(response => {
-                // We don't need to alert, just refresh the list to show it's gone
-                loadStudents();
+                loadStudents(); // Refresh the list automatically
             });
         }
     }
 
-    // Load list when page opens
+    // Initial Load
     loadStudents();
-</script>
 
-</body>
+</script> </body>
 </html>

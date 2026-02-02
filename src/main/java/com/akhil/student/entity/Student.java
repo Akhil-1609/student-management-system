@@ -15,6 +15,8 @@ public class Student {
 
     private String branch;
 
+    private String email;
+
     public Student() {
     }
 
@@ -40,5 +42,12 @@ public class Student {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getEmail(){
+        return email;
+    }
+    public void setEmail(String email){
+        this.email=email;
     }
 }
