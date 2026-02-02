@@ -5,12 +5,18 @@
     <title>Student Management System</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
-        .container { max-width: 500px; margin: auto; }
+        .container { max-width: 600px; margin: auto; }
         input { padding: 10px; margin: 5px 0; width: 95%; }
-        button { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; width: 100%; }
-        button:hover { background-color: #218838; }
+        /* Green Add Button */
+        .btn-add { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; width: 100%; }
+        .btn-add:hover { background-color: #218838; }
+
+        /* Red Delete Button */
+        .btn-delete { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 10px; border-radius: 3px;}
+        .btn-delete:hover { background-color: #c82333; }
+
         ul { list-style-type: none; padding: 0; }
-        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-bottom: 1px solid #ddd; }
+        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -21,19 +27,18 @@
     <h3>Add New Student</h3>
     <input type="text" id="studentName" placeholder="Enter Name">
     <input type="text" id="studentBranch" placeholder="Enter Branch">
-    <button onclick="addStudent()">Add Student</button>
+    <button class="btn-add" onclick="addStudent()">Add Student</button>
 
     <hr>
 
     <h3>Student List</h3>
-    <button onclick="loadStudents()" style="background-color: #007bff; margin-bottom: 10px;">Refresh List</button>
     <ul id="studentList"></ul>
 </div>
 
 <script>
     const API_URL = "http://localhost:8080/students";
 
-    // 1. Function to Load Students
+    // 1. Function to Load Students (Now with Delete Buttons!)
     function loadStudents() {
         fetch(API_URL + "/all")
             .then(response => response.json())
@@ -42,7 +47,11 @@
                 list.innerHTML = ""; // Clear current list
                 data.forEach(student => {
                     const li = document.createElement("li");
-                    li.textContent = `ID: ${student.id} | Name: ${student.name} | Branch: ${student.branch}`;
+                    // Show Info + Red Delete Button
+                    li.innerHTML = `
+                        <span>ID: ${student.id} | <b>${student.name}</b> (${student.branch})</span>
+                        <button class="btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
+                    `;
                     list.appendChild(li);
                 });
             });
@@ -53,6 +62,11 @@
         const name = document.getElementById("studentName").value;
         const branch = document.getElementById("studentBranch").value;
 
+        if (!name || !branch) {
+            alert("Please enter both Name and Branch");
+            return;
+        }
+
         fetch(API_URL + "/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -60,11 +74,23 @@
         })
         .then(response => response.json())
         .then(data => {
-            alert("Student Added!");
-            loadStudents(); // Reload list automatically
-            document.getElementById("studentName").value = ""; // Clear text boxes
+            loadStudents(); // Reload list
+            document.getElementById("studentName").value = "";
             document.getElementById("studentBranch").value = "";
         });
+    }
+
+    // 3. Function to Delete Student
+    function deleteStudent(id) {
+        if(confirm("Are you sure you want to delete ID " + id + "?")) {
+            fetch(API_URL + "/delete/" + id, {
+                method: "DELETE"
+            })
+            .then(response => {
+                // We don't need to alert, just refresh the list to show it's gone
+                loadStudents();
+            });
+        }
     }
 
     // Load list when page opens
