@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Management System</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        input { padding: 10px; margin: 5px 0; width: 95%; }
+        button { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; width: 100%; }
+        button:hover { background-color: #218838; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-bottom: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎓 Student System</h2>
+
+    <h3>Add New Student</h3>
+    <input type="text" id="studentName" placeholder="Enter Name">
+    <input type="text" id="studentBranch" placeholder="Enter Branch">
+    <button onclick="addStudent()">Add Student</button>
+
+    <hr>
+
+    <h3>Student List</h3>
+    <button onclick="loadStudents()" style="background-color: #007bff; margin-bottom: 10px;">Refresh List</button>
+    <ul id="studentList"></ul>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/students";
+
+    // 1. Function to Load Students
+    function loadStudents() {
+        fetch(API_URL + "/all")
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById("studentList");
+                list.innerHTML = ""; // Clear current list
+                data.forEach(student => {
+                    const li = document.createElement("li");
+                    li.textContent = `ID: ${student.id} | Name: ${student.name} | Branch: ${student.branch}`;
+                    list.appendChild(li);
+                });
+            });
+    }
+
+    // 2. Function to Add Student
+    function addStudent() {
+        const name = document.getElementById("studentName").value;
+        const branch = document.getElementById("studentBranch").value;
+
+        fetch(API_URL + "/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name, branch: branch })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Student Added!");
+            loadStudents(); // Reload list automatically
+            document.getElementById("studentName").value = ""; // Clear text boxes
+            document.getElementById("studentBranch").value = "";
+        });
+    }
+
+    // Load list when page opens
+    loadStudents();
+</script>
+
+</body>
+</html>
