@@ -52,5 +52,9 @@ public class StudentService {
         return  null;
     }
 
+    //New Feature : Search By Name
+    public  List<Student> searchByName(String name){
+        return  repository.findByName(name);
+    }
 
 }

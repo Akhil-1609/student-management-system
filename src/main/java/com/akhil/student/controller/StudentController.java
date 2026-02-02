@@ -42,4 +42,9 @@ public class StudentController {
 
     }
 
+    @GetMapping("search")
+    public List<Student> searchStudent(@RequestParam String name){
+        return service.searchByName(name);
+    }
+
 }
