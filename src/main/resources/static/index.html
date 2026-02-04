@@ -2,74 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .container { max-width: 700px; margin: auto; }
-        input { padding: 10px; margin: 5px 0; width: 95%; }
-
-        /* Green Add Button */
-        .btn-add { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; width: 100%; }
-        .btn-add:hover { background-color: #218838; }
-
-        /* Red Delete Button */
-        .btn-delete { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 10px; border-radius: 3px;}
-        .btn-delete:hover { background-color: #c82333; }
-
-        ul { list-style-type: none; padding: 0; }
-        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        body { background-color: #f8f9fa; }
+        .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: none; }
+        .table-action-btn { width: 80px; }
     </style>
 </head>
 <body>
 
+<nav class="navbar navbar-dark bg-primary mb-4">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">🎓 Student Management System</span>
+    </div>
+</nav>
+
 <div class="container">
-    <h2>🎓 Student System</h2>
+    <div class="row">
 
-    <h3>Add New Student</h3>
-    <input type="text" id="studentName" placeholder="Enter Name">
-    <input type="text" id="studentBranch" placeholder="Enter Branch">
-    <input type="email" id="studentEmail" placeholder="Enter Email">
+        <div class="col-md-4 mb-4">
+            <div class="card p-4">
+                <h4 class="mb-3 text-primary">Add New Student</h4>
+                <div class="mb-3">
+                    <label class="form-label">Student Name</label>
+                    <input type="text" id="studentName" class="form-control" placeholder="Ex: Akhil Patri">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Branch</label>
+                    <select id="studentBranch" class="form-select">
+                        <option value="">Select Branch</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="ECE">ECE</option>
+                        <option value="Mechanical">Mechanical</option>
+                        <option value="Civil">Civil</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="studentEmail" class="form-control" placeholder="name@example.com">
+                </div>
+                <button class="btn btn-success w-100" onclick="addStudent()">+ Add Student</button>
+            </div>
+        </div>
 
-    <button class="btn-add" onclick="addStudent()">Add Student</button>
+        <div class="col-md-8">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-dark">Student Database</h4>
+                    <span class="badge bg-secondary" id="countBadge">0 Students</span>
+                </div>
 
-    <hr>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Branch</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    <h3>Student List</h3>
-    <ul id="studentList"></ul>
+    </div>
 </div>
 
 <script>
     const API_URL = "http://localhost:8080/students";
 
+    // Load Students & Build Table
     function loadStudents() {
         fetch(API_URL + "/all")
             .then(response => response.json())
             .then(data => {
-                const list = document.getElementById("studentList");
-                list.innerHTML = "";
+                const tableBody = document.getElementById("studentTableBody");
+                tableBody.innerHTML = "";
+                document.getElementById("countBadge").innerText = data.length + " Students";
+
                 data.forEach(student => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <span>
-                           ID: ${student.id} |
-                           <b>${student.name}</b>
-                           (${student.branch}) -
-                           <span style="color:blue">${student.email || 'No Email'}</span>
-                        </span>
-                        <button class="btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
+                    const row = `
+                        <tr>
+                            <td>#${student.id}</td>
+                            <td class="fw-bold text-primary">${student.name}</td>
+                            <td><span class="badge bg-info text-dark">${student.branch}</span></td>
+                            <td>${student.email || '<span class="text-muted">N/A</span>'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${student.id})">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
                     `;
-                    list.appendChild(li);
+                    tableBody.innerHTML += row;
                 });
             });
     }
 
+    // Add Student
     function addStudent() {
         const name = document.getElementById("studentName").value;
         const branch = document.getElementById("studentBranch").value;
         const email = document.getElementById("studentEmail").value;
 
         if (!name || !branch || !email) {
-            alert("Please enter Name, Branch, and Email");
+            alert("Please fill in all fields!");
             return;
         }
 
@@ -80,30 +124,30 @@
         })
         .then(response => {
             if (response.ok) {
-                return response.json().then(data => {
-                    alert("Student Added!");
-                    loadStudents();
+                return response.json().then(() => {
+                    loadStudents(); // Refresh table
+                    // Clear inputs
                     document.getElementById("studentName").value = "";
                     document.getElementById("studentBranch").value = "";
                     document.getElementById("studentEmail").value = "";
                 });
             } else {
-                alert("Error: Email is already taken!");
+                alert("Error: Email already exists!");
             }
         });
     }
 
+    // Delete Student
     function deleteStudent(id) {
-        if(confirm("Are you sure you want to delete ID " + id + "?")) {
+        if(confirm("Delete student ID " + id + "?")) {
             fetch(API_URL + "/delete/" + id, { method: "DELETE" })
-            .then(response => {
-                loadStudents(); // Refresh the list automatically
-            });
+            .then(() => loadStudents());
         }
     }
 
     // Initial Load
     loadStudents();
+</script>
 
-</script> </body>
+</body>
 </html>
